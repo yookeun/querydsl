@@ -1,7 +1,6 @@
 package com.example.querydsl.repository;
 
 import com.example.querydsl.dto.MemberSearchCondition;
-import com.example.querydsl.dto.MemberTeamDto;
 import com.example.querydsl.entity.Member;
 import com.example.querydsl.entity.Team;
 import org.junit.jupiter.api.Test;
@@ -12,38 +11,18 @@ import org.springframework.data.domain.PageRequest;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
-
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
-class MemberRepositoryTest {
+class MemberTestRepositoryTest {
 
+    @Autowired MemberTestRepository memberTestRepository;
     @Autowired
     EntityManager em;
 
-    @Autowired MemberRepository memberRepository;
-
     @Test
-    public void basicTest() {
-        Member member = new Member("member1", 10);
-        memberRepository.save(member);
-        Member findMember = memberRepository.findById(member.getId()).get();
-        assertThat(findMember).isEqualTo(member);
-
-        List<Member> result1 = memberRepository.findAll();
-        assertThat(result1).containsExactly(member);
-
-        List<Member> result2 = memberRepository.findByUsername("member1");
-        assertThat(result2).containsExactly(member);
-
-    }
-
-    @Test
-    public void searchText() {
+    public void search() {
 
         Team teamA = new Team("teamA");
         Team teamB = new Team("teamB");
@@ -60,18 +39,15 @@ class MemberRepositoryTest {
         em.persist(member3);
         em.persist(member4);
 
-        MemberSearchCondition condition = new MemberSearchCondition();
-        condition.setAgeGoe(35);
-        condition.setAgeLoe(40);
-        condition.setTeamName("teamB");
-
-        //List<MemberTeamDto> result = memberJpaRepository.searchByBuilder(condition);
-        List<MemberTeamDto> result = memberRepository.search(condition);
-        assertThat(result).extracting("username").containsExactly("member4");
+        List<Member> result = memberTestRepository.basicSelect();
+        for (Member member : result) {
+            System.out.println(">>>>>>>>>>>" +member);
+        }
     }
 
+
     @Test
-    public void searchPageSimple() {
+    public void searchPage() {
 
         Team teamA = new Team("teamA");
         Team teamB = new Team("teamB");
@@ -93,12 +69,10 @@ class MemberRepositoryTest {
 //        condition.setAgeLoe(40);
 //        condition.setTeamName("teamB");
         PageRequest pageRequest = PageRequest.of(0, 3);
-        Page<MemberTeamDto> result = memberRepository.searchPageSimple(condition, pageRequest);
 
-        System.out.println("------------------------------");
-        System.out.println(result.getTotalElements());
-        System.out.println("------------------------------");
-
+        Page<Member> members = memberTestRepository.searchPageByApplyPage(condition, pageRequest);
+        for (Member member : members) {
+            System.out.println(">>>>>>>>>>>" +member);
+        }
     }
-
 }
